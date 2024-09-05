@@ -1,0 +1,45 @@
+(function() {
+
+    var csc_id = $sp.getParameter('csc_id'); // sn_customerservice_case.sys_id
+    var cst_id = $sp.getParameter('cst_id'); // sn_customerservice_task.sys_id
+    var opened_by = $sp.getParameter('opened_by'); // sn_customerservice_case.opened_by
+    var email_ts = $sp.getParameter('email_ts');
+
+    var current_time = new GlideDateTime().getValue();
+    var current_time_now = new GlideDateTime();
+    var expired = false;
+
+    data.email_ts = email_ts;
+    data.current_time = current_time;
+	  data.expired = expired;
+
+    // Convert the creation date to GlideDateTime for comparison
+    var createdDateTime = new GlideDateTime(email_ts);
+
+    // Calculate the difference in milliseconds
+    var timeDifference = current_time_now.getNumericValue() - createdDateTime.getNumericValue();
+
+    // Convert milliseconds to hours
+    var differenceInHours = timeDifference / (1000 * 60 * 60);
+
+    // Check if the difference is greater than one hour
+    if (differenceInHours > 1) {
+        expired = true;
+        data.expired = expired;
+        //console.log('The record was created more than one hour ago.');
+
+    } else {
+        //console.log('The record was created within the last hour.');
+        data.expired = expired;
+
+        if (cst_id) {
+            var grCloseTask = new GlideRecord('sn_customerservice_task');
+            if (grCloseTask.get('sys_id', cst_id)) {
+                grCloseTask.setValue('state', 3);
+                grCloseTask.update();
+            }
+            //console.log("Case Task State: " + grCloseTask.getDisplayValue('state'));
+        }
+    }
+
+})();
